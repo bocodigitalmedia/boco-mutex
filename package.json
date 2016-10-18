@@ -1,0 +1,33 @@
+{
+  "name": "boco-mutex",
+  "version": "0.1.0",
+  "description": "Async mutex locks for js",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "rm -rf build && mkdir build && ./node_modules/.bin/coffee -cmb -o build source"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/bocodigitalmedia/boco-mutex.git"
+  },
+  "keywords": [
+    "mutex",
+    "lock",
+    "locking",
+    "semaphore",
+    "async"
+  ],
+  "author": "Christian Bradley <christianbradley@gmail.com> (https://github.com/christianbradley)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/bocodigitalmedia/boco-mutex/issues"
+  },
+  "homepage": "https://github.com/bocodigitalmedia/boco-mutex#readme",
+  "devDependencies": {
+    "coffee-script": "^1.11.1"
+  },
+  "dependencies": {
+    "uuid": "^2.0.3"
+  }
+}
