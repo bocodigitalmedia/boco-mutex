@@ -173,8 +173,8 @@ configure = function(props) {
       if (this.locked == null) {
         this.locked = false;
       }
-      if (this.currentKey == null) {
-        this.currentKey = null;
+      if (this.currentRequestId == null) {
+        this.currentRequestId = null;
       }
       if (this.emitter == null) {
         this.emitter = new EventEmitter;
@@ -184,27 +184,27 @@ configure = function(props) {
       }
     }
 
-    Lock.prototype.grantRequest = function(requestId) {
-      var request;
-      request = this.getRequest(requestId);
+    Lock.prototype.grantRequest = function(requestId, done) {
       this.locked = true;
       this.currentRequestId = requestId;
       return setImmediate((function(_this) {
         return function() {
-          return request.callback(null, _this.release.bind(_this, requestId));
+          var release;
+          release = _this.release.bind(_this, requestId);
+          return done(null, release);
         };
       })(this));
     };
 
-    Lock.prototype.attemptGrantRequest = function(requestId) {
+    Lock.prototype.attemptGrantRequest = function(requestId, done) {
       var request;
       if (!this.locked) {
-        return this.grantRequest(requestId);
+        return this.grantRequest(requestId, done);
       }
       request = this.getRequest(requestId);
       request.releaseListener = (function(_this) {
         return function() {
-          return _this.attemptGrantRequest(requestId);
+          return _this.attemptGrantRequest(requestId, done);
         };
       })(this);
       return this.emitter.once('release', request.releaseListener);
@@ -245,13 +245,14 @@ configure = function(props) {
       }
       this.locked = false;
       this.currentRequestId = null;
-      this.emitter.emit('release');
-      return this.removeRequest(requestId);
+      this.removeRequest(requestId);
+      return this.emitter.emit('release');
     };
 
     Lock.prototype.removeRequest = function(requestId) {
-      var listener;
-      listener = this.getRequest(requestId).releaseListener;
+      var listener, request;
+      request = this.getRequest(requestId);
+      listener = request.releaseListener;
       if (listener != null) {
         this.emitter.removeListener('release', listener);
       }

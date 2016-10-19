@@ -63,23 +63,25 @@ configure = (props) ->
       @[key] = val for own key, val of props
 
       @locked ?= false
-      @currentKey ?= null
+      @currentRequestId ?= null
       @emitter ?= new EventEmitter
       @requests ?= {}
 
-    grantRequest: (requestId) ->
-      request = @getRequest requestId
+    grantRequest: (requestId, done) ->
       @locked = true
       @currentRequestId = requestId
 
       setImmediate =>
-        request.callback null, @release.bind(@, requestId)
+        release = @release.bind @, requestId
+        done null, release
 
-    attemptGrantRequest: (requestId) ->
-      return @grantRequest(requestId) unless @locked
+    attemptGrantRequest: (requestId, done) ->
+      return @grantRequest requestId, done unless @locked
 
       request = @getRequest requestId
-      request.releaseListener = => @attemptGrantRequest requestId
+
+      request.releaseListener = =>
+        @attemptGrantRequest requestId, done
 
       @emitter.once 'release', request.releaseListener
 
@@ -102,12 +104,15 @@ configure = (props) ->
 
       @locked = false
       @currentRequestId = null
-      @emitter.emit 'release'
       @removeRequest requestId
+      @emitter.emit 'release'
 
     removeRequest: (requestId) ->
-      listener = @getRequest(requestId).releaseListener
+      request = @getRequest requestId
+      listener = request.releaseListener
+
       @emitter.removeListener 'release', listener if listener?
+
       delete @requests[requestId]
 
     sync: (work, done) ->
